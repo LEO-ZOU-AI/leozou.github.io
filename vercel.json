@@ -6,14 +6,14 @@
     }
   },
   "env": {
-    "DASHSCOPE_API_KEY": "@dashscope_api_key",
-    "JWT_SECRET": "@jwt_secret",
-    "ADMIN_USERNAME": "@admin_username",
-    "ADMIN_PASSWORD": "@admin_password"
+    "DASHSCOPE_API_KEY": "${dashscope_api_key}",
+    "JWT_SECRET": "${jwt_secret}",
+    "ADMIN_USERNAME": "${admin_username}",
+    "ADMIN_PASSWORD": "${admin_password}"
   },
   "build": {
     "env": {
-      "DASHSCOPE_API_KEY": "@dashscope_api_key"
+      "DASHSCOPE_API_KEY": "${dashscope_api_key}"
     }
   }
 } 
