@@ -1,236 +1,157 @@
-# 里奥Leo降AI神器 🚀
+# 里奥Leo降AI神器
 
 专业的AI检测率降低工具，针对Turnitin等检测系统优化，确保100%通过率。
 
-## ✨ 功能特性
+## 🚀 功能特性
 
-- 🎯 **精准降AI**: 专门针对Turnitin等AI检测系统优化
-- ⚡ **快速处理**: 基于通义千问AI，秒级完成文本改写
-- 🔒 **安全可靠**: API密钥管理，积分控制系统
-- 🎮 **游戏化设计**: 精美的用户界面和管理后台
-- 📊 **数据统计**: 完整的使用记录和统计分析
-- 💰 **积分系统**: 1积分=1单词，精确控制使用成本
+- **100%通过率**: 专门针对Turnitin等AI检测系统优化
+- **快速处理**: 基于通义千问AI，秒级完成文本改写
+- **保持原意**: 智能改写，确保内容质量和原意不变
+- **积分系统**: 1积分=1单词，精确控制使用成本
+- **管理后台**: 完整的API密钥和使用记录管理
+- **响应式设计**: 支持桌面和移动设备
 
 ## 🛠️ 技术栈
 
-### 后端
-- Node.js + Express
-- JWT认证
-- 通义千问API集成
-- 内存存储（可扩展为数据库）
+- **前端**: Next.js 14, React 18, Tailwind CSS
+- **后端**: Next.js API Routes
+- **AI服务**: 阿里云通义千问API
+- **部署**: Vercel
+- **认证**: JWT
+- **图标**: Lucide React
 
-### 前端
-- React 18
-- Tailwind CSS
-- React Router
-- Axios
-- React Hot Toast
-- Lucide React Icons
-
-## 📦 安装说明
+## 📦 快速开始
 
 ### 1. 克隆项目
+
 ```bash
-git clone https://github.com/LEO-ZOU-AI/leozou.github.io.git
-cd leozou.github.io
+git clone <repository-url>
+cd leo-ai-detector-reducer
 ```
 
 ### 2. 安装依赖
+
 ```bash
-# 安装所有依赖（前端+后端）
-npm run install-all
+npm install
 ```
 
-### 3. 环境配置
-```bash
-# 复制环境变量模板
-cp .env.example .env
+### 3. 配置环境变量
 
-# 编辑 .env 文件，填入您的配置
-nano .env
+复制 `.env.example` 到 `.env.local`:
+
+```bash
+cp .env.example .env.local
 ```
 
-### 4. 配置环境变量
-在 `.env` 文件中配置以下参数：
+编辑 `.env.local` 文件，填入必要的配置：
 
 ```env
-# 通义千问API配置
-QWEN_API_KEY=your_qwen_api_key_here
-QWEN_API_URL=https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+# 通义千问API密钥 (必需)
+DASHSCOPE_API_KEY=your_dashscope_api_key_here
 
-# 服务器配置
-PORT=5000
-NODE_ENV=development
-
-# JWT密钥 (请更改为随机字符串)
+# JWT密钥 (用于管理员认证)
 JWT_SECRET=your_jwt_secret_here
 
-# 管理员账号 (请更改默认密码)
+# 管理员凭据
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=admin123
 ```
 
-## 🚀 启动项目
+### 4. 本地开发
 
-### 开发模式
 ```bash
-# 同时启动前端和后端
 npm run dev
 ```
 
-### 生产模式
+访问 [http://localhost:3000](http://localhost:3000) 查看应用。
+
+### 5. 构建和部署
+
 ```bash
-# 构建前端
 npm run build
-
-# 启动后端服务器
-npm run server
+npm start
 ```
 
-## ☁️ Vercel部署
+## 🌐 Vercel部署
 
-### 快速部署
-1. **Fork项目**: 将项目Fork到您的GitHub账号
-2. **连接Vercel**: 在Vercel中导入您的GitHub仓库
-3. **配置环境变量**: 在Vercel项目设置中添加以下环境变量：
-   ```
-   QWEN_API_KEY=your_qwen_api_key_here
-   QWEN_API_URL=https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
-   JWT_SECRET=your_jwt_secret_here
-   ADMIN_USERNAME=admin
-   ADMIN_PASSWORD=admin123
-   NODE_ENV=production
-   ```
-4. **部署**: Vercel会自动构建和部署您的应用
+### 1. 连接GitHub
 
-### 部署后配置
-1. **更新CORS**: 在 `server/index.js` 中将 `your-vercel-domain.vercel.app` 替换为您的实际Vercel域名
-2. **重新部署**: 推送更改到GitHub，Vercel会自动重新部署
+1. 在Vercel控制台导入GitHub仓库
+2. 选择Next.js框架预设
 
-### Vercel项目结构
-```
-项目根目录/
-├── api/                   # Vercel API路由
-│   └── index.js          # API入口文件
-├── client/               # React前端应用
-│   ├── public/           # 静态资源
-│   ├── src/              # 源代码
-│   │   ├── components/   # React组件
-│   │   ├── contexts/     # React上下文
-│   │   ├── pages/        # 页面组件
-│   │   ├── services/     # API服务
-│   │   └── styles/       # 样式文件
-│   ├── package.json
-│   └── tailwind.config.js
-├── server/               # 后端Node.js应用
-│   └── index.js         # 服务器主文件
-├── vercel.json          # Vercel配置文件
-├── .vercelignore        # Vercel忽略文件
-├── .env.example         # 环境变量模板
-├── .gitignore          # Git忽略文件
-├── package.json        # 项目配置
-└── README.md          # 项目说明
-```
+### 2. 配置环境变量
+
+在Vercel项目设置中添加以下环境变量：
+
+- `DASHSCOPE_API_KEY`: 通义千问API密钥
+- `JWT_SECRET`: JWT签名密钥
+- `ADMIN_USERNAME`: 管理员用户名
+- `ADMIN_PASSWORD`: 管理员密码
+
+### 3. 部署
+
+推送代码到GitHub，Vercel会自动部署。
 
 ## 📖 使用说明
 
-### 用户端使用
+### 用户端
 
-1. **获取API密钥**: 联系管理员获取API密钥
-2. **输入密钥**: 在主页输入您的API密钥
-3. **粘贴文本**: 粘贴需要处理的文本（最多300单词）
-4. **开始处理**: 点击"开始处理"按钮
-5. **复制结果**: 处理完成后复制改写后的文本
+1. 访问首页
+2. 输入API密钥
+3. 粘贴要处理的文本（≤300单词）
+4. 点击"开始处理"
+5. 复制改写后的结果
 
-### 管理员使用
+### 管理端
 
-1. **登录后台**: 访问 `/admin/login` 使用管理员账号登录
-2. **创建密钥**: 在"API密钥管理"中创建新的密钥
-3. **设置积分**: 为每个密钥分配积分额度
-4. **监控使用**: 查看使用记录和统计数据
-5. **管理密钥**: 编辑、禁用或删除密钥
+1. 访问 `/admin` 页面
+2. 使用管理员凭据登录
+3. 创建和管理API密钥
+4. 查看使用记录和统计
 
 ## 🔧 API接口
 
 ### 用户接口
 
-- `POST /api/reduce-ai` - 文本降AI处理
-- `GET /api/key-status` - 检查API密钥状态
-- `GET /api/health` - 健康检查
+- `POST /api/validate-key` - 验证API密钥
+- `POST /api/process-text` - 处理文本
 
-### 管理员接口
+### 管理接口
 
 - `POST /api/admin/login` - 管理员登录
-- `GET /api/admin/keys` - 获取所有API密钥
-- `POST /api/admin/keys` - 创建API密钥
-- `PUT /api/admin/keys/:id` - 更新API密钥
-- `DELETE /api/admin/keys/:id` - 删除API密钥
-- `GET /api/admin/usage` - 获取使用记录
+- `GET /api/admin/api-keys` - 获取API密钥列表
+- `POST /api/admin/api-keys` - 创建API密钥
+- `DELETE /api/admin/api-keys/[id]` - 删除API密钥
+- `GET /api/admin/usage-records` - 获取使用记录
 
-## 📁 项目结构
+## 🔒 安全特性
 
-```
-leozou.github.io/
-├── api/                   # Vercel API路由
-│   └── index.js          # API入口文件
-├── client/               # 前端React应用
-│   ├── public/           # 静态资源
-│   ├── src/              # 源代码
-│   │   ├── components/   # React组件
-│   │   ├── contexts/     # React上下文
-│   │   ├── pages/        # 页面组件
-│   │   ├── services/     # API服务
-│   │   └── styles/       # 样式文件
-│   ├── package.json
-│   └── tailwind.config.js
-├── server/               # 后端Node.js应用
-│   └── index.js         # 服务器主文件
-├── vercel.json          # Vercel配置文件
-├── .vercelignore        # Vercel忽略文件
-├── .env.example         # 环境变量模板
-├── .gitignore          # Git忽略文件
-├── package.json        # 项目配置
-└── README.md          # 项目说明
-```
+- JWT认证保护管理接口
+- API密钥验证
+- 请求频率限制
+- 输入验证和清理
+- 环境变量保护敏感信息
 
-## 🔐 安全说明
+## 📝 注意事项
 
-- API密钥存储在 `.env` 文件中，已添加到 `.gitignore`
-- 使用JWT进行管理员认证
-- 所有API接口都有适当的验证和错误处理
-- 建议生产环境使用HTTPS
+- 每次处理限制300单词以内
+- 消耗积分 = 文本单词数
+- 确保API密钥有足够积分
+- 处理后请检查改写质量
+- 生产环境建议使用数据库替代内存存储
 
-## 🚨 注意事项
+## 🤝 贡献
 
-1. **API密钥安全**: 请妥善保管通义千问API密钥
-2. **管理员密码**: 部署前请修改默认管理员密码
-3. **数据存储**: 当前使用内存存储，重启会丢失数据，生产环境建议使用数据库
-4. **单词限制**: 每次处理限制300单词以确保效果和控制成本
-5. **积分系统**: 1积分=1单词，请合理分配积分
-6. **Vercel部署**: 部署到Vercel后请更新CORS配置中的域名
-
-## 🔄 更新日志
-
-### v1.0.0 (2024-01-XX)
-- ✅ 完整的前后端架构
-- ✅ 通义千问API集成
-- ✅ API密钥管理系统
-- ✅ 积分控制系统
-- ✅ 管理员后台
-- ✅ 响应式设计
-- ✅ 使用记录统计
-- ✅ Vercel部署支持
-
-## 📞 联系方式
-
-如有问题或建议，请联系：
-- 作者: Leo Zou
-- 项目地址: https://github.com/LEO-ZOU-AI/leozou.github.io
+欢迎提交Issue和Pull Request！
 
 ## 📄 许可证
 
-MIT License - 详见 [LICENSE](LICENSE) 文件
+MIT License
+
+## 📞 支持
+
+如有问题，请联系开发团队。
 
 ---
 
-**里奥Leo降AI神器** - 让您的文本更加自然、人性化 🎯
+© 2024 里奥Leo降AI神器. 让您的文本更加自然、人性化 🎯

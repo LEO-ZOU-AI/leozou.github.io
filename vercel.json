@@ -22,5 +22,21 @@
       "src": "/(.*)",
       "dest": "/client/build/$1"
     }
-  ]
+  ],
+  "functions": {
+    "pages/api/**/*.js": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "DASHSCOPE_API_KEY": "@dashscope_api_key",
+    "JWT_SECRET": "@jwt_secret",
+    "ADMIN_USERNAME": "@admin_username",
+    "ADMIN_PASSWORD": "@admin_password"
+  },
+  "build": {
+    "env": {
+      "DASHSCOPE_API_KEY": "@dashscope_api_key"
+    }
+  }
 } 
