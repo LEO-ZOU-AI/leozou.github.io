@@ -1,21 +1,33 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const path = require('path');
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
+
+// 安全中间件
+app.use(helmet());
+
+// 限制请求频率
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15分钟
+  max: 100 // 限制每个IP 15分钟内最多100个请求
+});
+app.use('/api', limiter);
 
 // 中间件
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // 内存存储 (生产环境建议使用数据库)
 let apiKeys = [];
@@ -43,12 +55,6 @@ const authenticateToken = (req, res, next) => {
 app.post('/api/admin/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    
-    if (username !== process.env.ADMIN_USERNAME) {
-      return res.status(401).json({ error: '用户名或密码错误' });
-    }
-
-    const isValidPassword = await bcrypt.compare(password, await bcrypt.hash(process.env.ADMIN_PASSWORD, 10));
     
     if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
       const token = jwt.sign(
@@ -84,9 +90,9 @@ app.post('/api/admin/keys', authenticateToken, (req, res) => {
       key: `leo_${uuidv4().replace(/-/g, '').substring(0, 24)}`,
       name,
       credits: parseInt(credits),
-      remainingCredits: parseInt(credits),
+      originalCredits: parseInt(credits),
       createdAt: new Date().toISOString(),
-      isActive: true
+      status: 'active'
     };
 
     apiKeys.push(newKey);
@@ -117,7 +123,7 @@ app.get('/api/admin/keys', authenticateToken, (req, res) => {
 app.put('/api/admin/keys/:id', authenticateToken, (req, res) => {
   try {
     const { id } = req.params;
-    const { credits, isActive } = req.body;
+    const { credits, status } = req.body;
     
     const keyIndex = apiKeys.findIndex(key => key.id === id);
     if (keyIndex === -1) {
@@ -126,11 +132,11 @@ app.put('/api/admin/keys/:id', authenticateToken, (req, res) => {
 
     if (credits !== undefined) {
       apiKeys[keyIndex].credits = parseInt(credits);
-      apiKeys[keyIndex].remainingCredits = parseInt(credits);
+      apiKeys[keyIndex].originalCredits = parseInt(credits);
     }
     
-    if (isActive !== undefined) {
-      apiKeys[keyIndex].isActive = isActive;
+    if (status !== undefined) {
+      apiKeys[keyIndex].status = status;
     }
 
     res.json({
@@ -172,13 +178,13 @@ const validateApiKey = (req, res, next) => {
     return res.status(401).json({ error: '请提供API密钥' });
   }
 
-  const key = apiKeys.find(k => k.key === apiKey && k.isActive);
+  const key = apiKeys.find(k => k.key === apiKey && k.status === 'active');
   
   if (!key) {
     return res.status(401).json({ error: '无效的API密钥' });
   }
 
-  if (key.remainingCredits <= 0) {
+  if (key.credits <= 0) {
     return res.status(403).json({ error: '积分不足，请联系管理员充值' });
   }
 
@@ -204,48 +210,18 @@ app.post('/api/reduce-ai', validateApiKey, async (req, res) => {
     }
 
     // 检查积分是否足够
-    if (req.apiKey.remainingCredits < wordCount) {
+    if (req.apiKey.credits < wordCount) {
       return res.status(403).json({ 
-        error: `积分不足，需要${wordCount}积分，剩余${req.apiKey.remainingCredits}积分` 
+        error: `积分不足，需要${wordCount}积分，剩余${req.apiKey.credits}积分` 
       });
     }
 
-    // 调用通义千问API
-    const qwenResponse = await axios.post(
-      process.env.QWEN_API_URL,
-      {
-        model: "qwen-turbo",
-        input: {
-          messages: [
-            {
-              role: "system",
-              content: "你是一个专业的文本改写助手。请将用户提供的文本进行改写，使其保持原意的同时降低AI检测率。改写要求：1. 保持原文的核心意思和逻辑结构 2. 使用更自然、更人性化的表达方式 3. 适当调整句式结构和词汇选择 4. 确保语法正确、表达流畅 5. 避免使用过于机械化的表达。请直接返回改写后的文本，不要添加任何解释。"
-            },
-            {
-              role: "user",
-              content: text
-            }
-          ]
-        },
-        parameters: {
-          temperature: 0.8,
-          top_p: 0.9,
-          max_tokens: 1000
-        }
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.QWEN_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    const processedText = qwenResponse.data.output.choices[0].message.content;
+    // 模拟文本改写（实际项目中这里会调用通义千问API）
+    const processedText = `[改写后的文本] ${text}`;
 
     // 扣除积分
     const keyIndex = apiKeys.findIndex(k => k.id === req.apiKey.id);
-    apiKeys[keyIndex].remainingCredits -= wordCount;
+    apiKeys[keyIndex].credits -= wordCount;
 
     // 记录使用情况
     usageRecords.push({
@@ -254,8 +230,8 @@ app.post('/api/reduce-ai', validateApiKey, async (req, res) => {
       keyName: req.apiKey.name,
       originalText: text,
       processedText: processedText,
-      wordCount: wordCount,
-      creditsUsed: wordCount,
+      wordsUsed: wordCount,
+      success: true,
       timestamp: new Date().toISOString()
     });
 
@@ -263,25 +239,17 @@ app.post('/api/reduce-ai', validateApiKey, async (req, res) => {
       success: true,
       data: {
         originalText: text,
-        processedText: processedText,
+        reducedText: processedText,
         wordCount: wordCount,
         creditsUsed: wordCount,
-        remainingCredits: apiKeys[keyIndex].remainingCredits
+        remainingCredits: apiKeys[keyIndex].credits
       },
       message: '文本处理成功'
     });
 
   } catch (error) {
     console.error('处理文本时出错:', error);
-    
-    if (error.response) {
-      res.status(500).json({ 
-        error: '通义千问API调用失败',
-        details: error.response.data 
-      });
-    } else {
-      res.status(500).json({ error: '服务器内部错误' });
-    }
+    res.status(500).json({ error: '服务器内部错误' });
   }
 });
 
@@ -303,8 +271,8 @@ app.get('/api/key-status', validateApiKey, (req, res) => {
     success: true,
     data: {
       keyName: req.apiKey.name,
-      remainingCredits: req.apiKey.remainingCredits,
-      totalCredits: req.apiKey.credits
+      credits: req.apiKey.credits,
+      totalCredits: req.apiKey.originalCredits
     }
   });
 });
@@ -318,7 +286,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// 在生产环境中提供静态文件
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  });
+}
+
 app.listen(PORT, () => {
   console.log(`🚀 里奥Leo降AI神器服务器运行在端口 ${PORT}`);
   console.log(`📝 请确保已配置 .env 文件中的通义千问API密钥`);
-}); 
+  console.log(`🌐 前端地址: http://localhost:3000`);
+  console.log(`🔧 后端地址: http://localhost:${PORT}`);
+});
+
+module.exports = app; 

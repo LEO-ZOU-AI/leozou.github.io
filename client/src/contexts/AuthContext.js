@@ -12,37 +12,47 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // 检查本地存储中的token
-    const savedToken = localStorage.getItem('adminToken');
-    if (savedToken) {
-      setToken(savedToken);
+    const token = localStorage.getItem('adminToken');
+    const userData = localStorage.getItem('adminUser');
+    
+    if (token && userData) {
       setIsAuthenticated(true);
+      setUser(JSON.parse(userData));
     }
+    
     setLoading(false);
   }, []);
 
-  const login = (token) => {
+  const login = (token, userData) => {
     localStorage.setItem('adminToken', token);
-    setToken(token);
+    localStorage.setItem('adminUser', JSON.stringify(userData));
     setIsAuthenticated(true);
+    setUser(userData);
   };
 
   const logout = () => {
     localStorage.removeItem('adminToken');
-    setToken(null);
+    localStorage.removeItem('adminUser');
     setIsAuthenticated(false);
+    setUser(null);
+  };
+
+  const getToken = () => {
+    return localStorage.getItem('adminToken');
   };
 
   const value = {
     isAuthenticated,
-    token,
+    user,
+    loading,
     login,
     logout,
-    loading
+    getToken
   };
 
   return (

@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-domain.com/api' 
-  : '/api';
+  ? '' 
+  : 'http://localhost:3001';
 
 // 创建axios实例
 const api = axios.create({
@@ -32,6 +32,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUser');
       window.location.href = '/admin/login';
     }
     return Promise.reject(error);
@@ -41,73 +42,56 @@ api.interceptors.response.use(
 // 管理员API
 export const adminAPI = {
   // 登录
-  login: async (credentials) => {
-    const response = await api.post('/admin/login', credentials);
-    return response.data;
+  login: (credentials) => {
+    return api.post('/api/admin/login', credentials);
   },
 
   // 获取所有API密钥
-  getKeys: async () => {
-    const response = await api.get('/admin/keys');
-    return response.data;
+  getKeys: () => {
+    return api.get('/api/admin/keys');
   },
 
   // 创建API密钥
-  createKey: async (keyData) => {
-    const response = await api.post('/admin/keys', keyData);
-    return response.data;
+  createKey: (keyData) => {
+    return api.post('/api/admin/keys', keyData);
   },
 
   // 更新API密钥
-  updateKey: async (id, keyData) => {
-    const response = await api.put(`/admin/keys/${id}`, keyData);
-    return response.data;
+  updateKey: (id, keyData) => {
+    return api.put(`/api/admin/keys/${id}`, keyData);
   },
 
   // 删除API密钥
-  deleteKey: async (id) => {
-    const response = await api.delete(`/admin/keys/${id}`);
-    return response.data;
+  deleteKey: (id) => {
+    return api.delete(`/api/admin/keys/${id}`);
   },
 
   // 获取使用记录
-  getUsageRecords: async () => {
-    const response = await api.get('/admin/usage');
-    return response.data;
-  },
+  getUsage: (params = {}) => {
+    return api.get('/api/admin/usage', { params });
+  }
 };
 
 // 用户API
 export const userAPI = {
-  // 处理文本
-  processText: async (text, apiKey) => {
-    const response = await axios.post(`${API_BASE_URL}/reduce-ai`, 
-      { text },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': apiKey,
-        },
-      }
-    );
-    return response.data;
+  // 检查API密钥状态
+  checkKeyStatus: (apiKey) => {
+    return api.get('/api/key-status', {
+      headers: { 'X-API-Key': apiKey }
+    });
   },
 
-  // 检查API密钥状态
-  checkKeyStatus: async (apiKey) => {
-    const response = await axios.get(`${API_BASE_URL}/key-status`, {
-      headers: {
-        'X-API-Key': apiKey,
-      },
+  // 文本降AI处理
+  reduceAI: (text, apiKey) => {
+    return api.post('/api/reduce-ai', { text }, {
+      headers: { 'X-API-Key': apiKey }
     });
-    return response.data;
   },
 
   // 健康检查
-  healthCheck: async () => {
-    const response = await axios.get(`${API_BASE_URL}/health`);
-    return response.data;
-  },
+  healthCheck: () => {
+    return api.get('/api/health');
+  }
 };
 
 export default api; 
