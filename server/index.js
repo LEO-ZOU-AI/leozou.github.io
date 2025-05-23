@@ -15,7 +15,9 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // 安全中间件
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // 为了Vercel部署
+}));
 
 // 限制请求频率
 const limiter = rateLimit({
@@ -24,8 +26,14 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// 中间件
-app.use(cors());
+// CORS配置 - 为Vercel部署优化
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://your-vercel-domain.vercel.app'] // 替换为你的Vercel域名
+    : ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -216,8 +224,45 @@ app.post('/api/reduce-ai', validateApiKey, async (req, res) => {
       });
     }
 
-    // 模拟文本改写（实际项目中这里会调用通义千问API）
-    const processedText = `[改写后的文本] ${text}`;
+    // 调用通义千问API进行文本改写
+    let processedText;
+    try {
+      if (process.env.QWEN_API_KEY && process.env.QWEN_API_KEY !== 'your_qwen_api_key_here') {
+        const response = await axios.post(process.env.QWEN_API_URL, {
+          model: "qwen-turbo",
+          input: {
+            messages: [
+              {
+                role: "system",
+                content: "你是一个专业的文本改写助手。请将用户提供的文本进行改写，保持原意不变，但改变表达方式，使其更难被AI检测工具识别。改写要求：1. 保持原文的核心意思和逻辑结构 2. 使用不同的词汇和句式 3. 调整句子长度和复杂度 4. 保持学术或专业的语调 5. 确保语法正确和表达流畅"
+              },
+              {
+                role: "user", 
+                content: `请改写以下文本：\n\n${text}`
+              }
+            ]
+          },
+          parameters: {
+            temperature: 0.7,
+            max_tokens: 2000
+          }
+        }, {
+          headers: {
+            'Authorization': `Bearer ${process.env.QWEN_API_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        processedText = response.data.output.choices[0].message.content;
+      } else {
+        // 如果没有配置API密钥，使用模拟改写
+        processedText = `[改写后的文本] ${text}`;
+      }
+    } catch (apiError) {
+      console.error('调用通义千问API失败:', apiError);
+      // API调用失败时使用模拟改写
+      processedText = `[改写后的文本] ${text}`;
+    }
 
     // 扣除积分
     const keyIndex = apiKeys.findIndex(k => k.id === req.apiKey.id);
@@ -282,24 +327,20 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     message: '里奥Leo降AI神器服务正常运行',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// 在生产环境中提供静态文件
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+// 为Vercel部署导出app
+module.exports = app;
+
+// 只在非Vercel环境下启动服务器
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 里奥Leo降AI神器服务器运行在端口 ${PORT}`);
+    console.log(`📝 请确保已配置 .env 文件中的通义千问API密钥`);
+    console.log(`🌐 前端地址: http://localhost:3000`);
+    console.log(`🔧 后端地址: http://localhost:${PORT}`);
   });
-}
-
-app.listen(PORT, () => {
-  console.log(`🚀 里奥Leo降AI神器服务器运行在端口 ${PORT}`);
-  console.log(`📝 请确保已配置 .env 文件中的通义千问API密钥`);
-  console.log(`🌐 前端地址: http://localhost:3000`);
-  console.log(`🔧 后端地址: http://localhost:${PORT}`);
-});
-
-module.exports = app; 
+} 

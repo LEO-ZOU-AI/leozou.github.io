@@ -87,6 +87,51 @@ npm run build
 npm run server
 ```
 
+## ☁️ Vercel部署
+
+### 快速部署
+1. **Fork项目**: 将项目Fork到您的GitHub账号
+2. **连接Vercel**: 在Vercel中导入您的GitHub仓库
+3. **配置环境变量**: 在Vercel项目设置中添加以下环境变量：
+   ```
+   QWEN_API_KEY=your_qwen_api_key_here
+   QWEN_API_URL=https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+   JWT_SECRET=your_jwt_secret_here
+   ADMIN_USERNAME=admin
+   ADMIN_PASSWORD=admin123
+   NODE_ENV=production
+   ```
+4. **部署**: Vercel会自动构建和部署您的应用
+
+### 部署后配置
+1. **更新CORS**: 在 `server/index.js` 中将 `your-vercel-domain.vercel.app` 替换为您的实际Vercel域名
+2. **重新部署**: 推送更改到GitHub，Vercel会自动重新部署
+
+### Vercel项目结构
+```
+项目根目录/
+├── api/                   # Vercel API路由
+│   └── index.js          # API入口文件
+├── client/               # React前端应用
+│   ├── public/           # 静态资源
+│   ├── src/              # 源代码
+│   │   ├── components/   # React组件
+│   │   ├── contexts/     # React上下文
+│   │   ├── pages/        # 页面组件
+│   │   ├── services/     # API服务
+│   │   └── styles/       # 样式文件
+│   ├── package.json
+│   └── tailwind.config.js
+├── server/               # 后端Node.js应用
+│   └── index.js         # 服务器主文件
+├── vercel.json          # Vercel配置文件
+├── .vercelignore        # Vercel忽略文件
+├── .env.example         # 环境变量模板
+├── .gitignore          # Git忽略文件
+├── package.json        # 项目配置
+└── README.md          # 项目说明
+```
+
 ## 📖 使用说明
 
 ### 用户端使用
@@ -126,21 +171,26 @@ npm run server
 
 ```
 leozou.github.io/
-├── client/                 # 前端React应用
-│   ├── public/            # 静态资源
-│   │   ├── components/    # React组件
-│   │   ├── contexts/      # React上下文
-│   │   ├── pages/         # 页面组件
-│   │   ├── services/      # API服务
-│   │   └── styles/        # 样式文件
+├── api/                   # Vercel API路由
+│   └── index.js          # API入口文件
+├── client/               # 前端React应用
+│   ├── public/           # 静态资源
+│   ├── src/              # 源代码
+│   │   ├── components/   # React组件
+│   │   ├── contexts/     # React上下文
+│   │   ├── pages/        # 页面组件
+│   │   ├── services/     # API服务
+│   │   └── styles/       # 样式文件
 │   ├── package.json
 │   └── tailwind.config.js
-├── server/                # 后端Node.js应用
-│   └── index.js          # 服务器主文件
-├── .env.example          # 环境变量模板
-├── .gitignore           # Git忽略文件
-├── package.json         # 项目配置
-└── README.md           # 项目说明
+├── server/               # 后端Node.js应用
+│   └── index.js         # 服务器主文件
+├── vercel.json          # Vercel配置文件
+├── .vercelignore        # Vercel忽略文件
+├── .env.example         # 环境变量模板
+├── .gitignore          # Git忽略文件
+├── package.json        # 项目配置
+└── README.md          # 项目说明
 ```
 
 ## 🔐 安全说明
@@ -157,6 +207,7 @@ leozou.github.io/
 3. **数据存储**: 当前使用内存存储，重启会丢失数据，生产环境建议使用数据库
 4. **单词限制**: 每次处理限制300单词以确保效果和控制成本
 5. **积分系统**: 1积分=1单词，请合理分配积分
+6. **Vercel部署**: 部署到Vercel后请更新CORS配置中的域名
 
 ## 🔄 更新日志
 
@@ -168,6 +219,7 @@ leozou.github.io/
 - ✅ 管理员后台
 - ✅ 响应式设计
 - ✅ 使用记录统计
+- ✅ Vercel部署支持
 
 ## 📞 联系方式
 
